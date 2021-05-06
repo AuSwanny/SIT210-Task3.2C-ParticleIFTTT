@@ -1,0 +1,40 @@
+int photoResistor = A5;
+int photoResistorPower = A0;
+String previous = "dark";
+
+int photoResistorCheckTime = 10000;
+
+int lastPhotoResistorReport;
+char lightValue[4];
+
+void setup() {
+
+  pinMode(photoResistor, INPUT);
+  pinMode(photoResistorPower, OUTPUT);
+
+  digitalWrite(photoResistorPower, HIGH);
+
+  lastPhotoResistorReport = millis();
+}
+
+void loop() {
+  if ((millis() - lastPhotoResistorReport) >= photoResistorCheckTime) {
+      lastPhotoResistorReport = millis();   // update current time for the next time through the loop
+      int LightLevel = analogRead(photoResistor);  // we read in the photoResistor level here (value can be 0 to 4095)
+      
+      // now let's classify the light level into one of three categories
+      if ((LightLevel < 700) && (previous != "dark")) {
+          Particle.publish("LightLevel", "dark", PRIVATE);
+          previous = "dark";
+          sprintf(lightValue,"%d", LightLevel);   // this converts the value from an integer to a string for publishing
+          Particle.publish("sensorValue", lightValue, PRIVATE);
+      }
+      //if (LightLevel >= 500 && lightLevel < 900) Particle.publish("LightLevel", "medium", PRIVATE);
+      if ((LightLevel >= 700) && (previous != "bright")) {
+          Particle.publish("LightLevel", "bright", PRIVATE);
+          previous = "bright";
+          sprintf(lightValue,"%d", LightLevel);   // this converts the value from an integer to a string for publishing
+          Particle.publish("sensorValue", lightValue, PRIVATE);
+      }
+  }
+}  // this is the end of the loop
